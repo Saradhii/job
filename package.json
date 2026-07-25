@@ -1,0 +1,7 @@
+{
+  "name": "job-autofiller",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": { "test": "vitest run" },
+  "devDependencies": { "vitest": "^1.6.0" }
+}
