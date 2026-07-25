@@ -1,0 +1,19 @@
+# Docs kept local — never committed
+*.md
+
+# Build / deps
+node_modules/
+dist/
+build/
+*.zip
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+*.swp
