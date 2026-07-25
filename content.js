@@ -6,14 +6,94 @@ const FILL_ACTION = "job-autofiller:fill";
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg?.type !== FILL_ACTION) return;
-
-  const fields = extractFields();
-  console.log("[job-autofiller] extracted fields", fields);
-  // TODO: match fields against profile (regex/fuzzy/LLM tiers)
-  // TODO: fill matched fields, surface unresolved queue
-  sendResponse({ count: fields.length });
-  return true; // async response if we go async later
+  runFill().then((report) => sendResponse(report));
+  return true; // async
 });
+
+async function runFill() {
+  const JF = window.JobFiller;
+  const profile = (await JF.storage.getProfile()) || JF.profile.getDefault();
+
+  const bundles = extractFields();
+  const results = []; // { id, el, path, value, confidence, source, status, inputType }
+
+  // --- Tier 1: rules + fuzzy ---
+  const unresolved = [];
+  for (const b of bundles) {
+    const m = JF.match.match(b);
+    if (m && m.confidence >= 0.5) {
+      results.push({
+        id: b.id, el: b.element, path: m.path,
+        value: JF.profile.getByPath(profile, m.path),
+        confidence: m.confidence, source: "rules", status: "matched",
+        inputType: b.inputType,
+      });
+    } else {
+      unresolved.push(b);
+    }
+  }
+
+  // --- Tier 2: LLM on the residue (bundle only, no DOM refs) ---
+  if (unresolved.length) {
+    const apiKey = await JF.storage.getApiKey();
+    const model = await JF.storage.getModel();
+    let llmOut = [];
+    if (apiKey) {
+      try {
+        const clean = unresolved.map(stripForLLM);
+        const name = profile.identity.firstName;
+        llmOut = await JF.llm.callLLM(clean, { apiKey, model, userName: name });
+      } catch (e) {
+        console.warn("[job-autofiller] LLM failed", e);
+      }
+    }
+    // map LLM results back onto bundles by id
+    for (const b of unresolved) {
+      const r = llmOut.find((x) => x.id === b.id);
+      if (r && r.path && r.confidence >= 0.5) {
+        results.push({
+          id: b.id, el: b.element, path: r.path,
+          value: JF.profile.getByPath(profile, r.path),
+          confidence: r.confidence, source: "llm", status: "matched",
+          inputType: b.inputType,
+        });
+      } else {
+        results.push({
+          id: b.id, el: b.element, path: null, value: null,
+          confidence: r?.confidence || 0, source: "unresolved", status: "unresolved",
+          inputType: b.inputType,
+        });
+      }
+    }
+  }
+
+  // --- Apply fills per confidence gate ---
+  const filled = [], review = [], unresolvedIds = [];
+  for (const r of results) {
+    if (r.status !== "matched" || r.value == null || r.value === "") {
+      unresolvedIds.push(r.id);
+      continue;
+    }
+    const ok = JF.fill.fill(r.el, r.value, r.inputType);
+    if (!ok) { unresolvedIds.push(r.id); continue; }
+    if (r.confidence >= 0.85) filled.push(r);
+    else review.push(r);
+  }
+
+  console.log("[job-autofiller]", {
+    filled: filled.length, review: review.length, unresolved: unresolvedIds.length,
+  });
+  return { filled: filled.length, review: review.length, unresolved: unresolvedIds.length };
+}
+
+function stripForLLM(b) {
+  // never send the element reference or anything DOM-bound to the LLM
+  return {
+    id: b.id, label: b.label, placeholder: b.placeholder,
+    helpText: b.helpText, ariaLabel: b.ariaLabel, section: b.section,
+    inputType: b.inputType, options: b.options,
+  };
+}
 
 /**
  * Walk the DOM (incl. open shadow roots + same-origin iframes)
