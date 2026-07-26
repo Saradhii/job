@@ -38,4 +38,20 @@ describe("Tier 1 matcher", () => {
     expect(r).not.toBeNull();
     expect(r.path).toBe("identity.phone");
   });
+
+  it("matches Indian experience fields", () => {
+    const r = match(bundle("Total Experience (in years)"));
+    expect(r.path).toBe("experience.totalYears");
+    expect(r.confidence).toBeGreaterThanOrEqual(0.7);
+  });
+
+  it("matches current CTC phrasing", () => {
+    const r = match(bundle("Current CTC (Annual)"));
+    expect(r.path).toBe("experience.currentCTC");
+  });
+
+  it("matches notice period", () => {
+    const r = match(bundle("Official Notice Period"));
+    expect(r.path).toBe("experience.noticePeriod");
+  });
 });

@@ -3,6 +3,7 @@ const P = window.JobFiller.profile;
 
 // --- map a dotted profile path to its input element id ---
 const IDENTITY = ["firstName", "lastName", "email", "phone", "linkedin", "github", "website", "location"];
+const EXPERIENCE = ["totalYears", "currentCompany", "currentTitle", "currentCTC", "expectedCTC", "noticePeriod"];
 const PREFS_TEXT = ["expectedSalary"];
 const PREFS_BOOL = ["authorizedToWorkUS", "requiresSponsorship", "remote", "relocation"];
 
@@ -20,6 +21,7 @@ $("raw").addEventListener("input", () => { rawEdited = true; });
 
 function populateForm(p) {
   IDENTITY.forEach((k) => { $(k).value = p.identity?.[k] ?? ""; });
+  EXPERIENCE.forEach((k) => { $(k).value = p.experience?.[k] ?? ""; });
   PREFS_TEXT.forEach((k) => { $(k).value = p.preferences?.[k] ?? ""; });
   PREFS_BOOL.forEach((k) => { $(k).checked = p.preferences?.[k] === true; });
   $("raw").value = JSON.stringify(p, null, 2);
@@ -29,6 +31,9 @@ function collectFromForm(base) {
   const p = structuredClone(base);
   p.identity = p.identity || {};
   IDENTITY.forEach((k) => { p.identity[k] = $(k).value.trim(); });
+
+  p.experience = p.experience || {};
+  EXPERIENCE.forEach((k) => { p.experience[k] = $(k).value.trim(); });
 
   p.preferences = p.preferences || {};
   PREFS_TEXT.forEach((k) => { p.preferences[k] = $(k).value.trim(); });

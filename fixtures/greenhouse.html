@@ -1,29 +1,39 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><title>Apply — Sample Greenhouse</title></head>
+<html><head><meta charset="utf-8"><title>Apply — SDE II (India)</title></head>
 <body>
-  <h1>Apply for Software Engineer</h1>
+  <h1>Apply for Software Engineer II — Bangalore</h1>
   <form>
-    <label>First Name <input id="first" name="first" type="text"></label><br><br>
-    <label>Last Name <input id="last" name="last" type="text"></label><br><br>
+    <label>Full Name <input id="name" name="name" type="text"></label><br><br>
     <label>Email <input id="email" name="email" type="email"></label><br><br>
     <label>Phone <input id="phone" name="phone" type="tel"></label><br><br>
     <label>LinkedIn URL <input id="li" name="li" type="text"></label><br><br>
-    <label>What is your expected compensation?
-      <input id="sal" name="sal" type="text" inputmode="numeric" placeholder="$90,000">
-    </label><br><br>
+
     <fieldset>
-      <legend>Work Authorization</legend>
-      <label><input type="checkbox" id="auth"> Are you legally authorized to work in the US?</label><br>
-      <label><input type="checkbox" id="spon"> Do you now or will you require sponsorship?</label>
-    </fieldset><br>
-    <label>How did you hear about us?
-      <select id="source">
+      <legend>Experience</legend>
+      <label>Total Experience (in years)
+        <input id="exp" name="exp" type="text" inputmode="decimal" placeholder="3.5">
+      </label><br><br>
+      <label>Current Company <input id="cc" name="cc" type="text"></label><br><br>
+      <label>Current Designation <input id="cd" name="cd" type="text"></label><br><br>
+      <label>Current CTC (Annual)
+        <input id="cctc" name="cctc" type="text" placeholder="₹18,00,000">
+      </label><br><br>
+      <label>Expected CTC (Annual)
+        <input id="ectc" name="ectc" type="text" placeholder="₹24,00,000">
+      </label><br><br>
+      <label>Official Notice Period
+        <input id="np" name="np" type="text" placeholder="60 days">
+      </label><br><br>
+    </fieldset>
+
+    <label>Are you willing to relocate?
+      <select id="relo">
         <option value="">Select…</option>
-        <option>LinkedIn</option>
-        <option>Referral</option>
-        <option>Other</option>
+        <option>Yes</option>
+        <option>No</option>
       </select>
     </label><br><br>
+
     <label>Why this role? <textarea id="why"></textarea></label><br><br>
   </form>
 </body></html>
