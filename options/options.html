@@ -1,22 +1,86 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><style>
-  body { font: 14px system-ui, sans-serif; max-width: 720px; margin: 24px auto; padding: 0 16px; }
-  textarea { width: 100%; height: 320px; font: 12px monospace; }
-  label { display:block; margin: 12px 0 4px; font-weight: 600; }
-  input[type="text"], input[type="password"] { width: 100%; padding: 6px; font-size: 14px; box-sizing: border-box; }
-  button { padding: 8px 16px; margin-top: 12px; cursor: pointer; }
-  #msg { color: #070; margin-top: 8px; min-height: 1em; }
+<html><head><meta charset="utf-8"><title>Job Auto-Filler — Profile</title>
+<style>
+  :root { --gap: 14px; }
+  * { box-sizing: border-box; }
+  body { font: 14px/1.4 system-ui, -apple-system, sans-serif; max-width: 680px; margin: 0 auto; padding: 28px 20px 60px; color: #1a1a1a; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  .sub { color: #666; margin: 0 0 24px; font-size: 13px; }
+  section { border: 1px solid #e3e3e3; border-radius: 10px; padding: 18px 20px; margin-bottom: var(--gap); }
+  section > h2 { margin: 0 0 14px; font-size: 15px; text-transform: uppercase; letter-spacing: .04em; color: #555; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .grid .full { grid-column: 1 / -1; }
+  label.field { display: flex; flex-direction: column; gap: 4px; }
+  label.field > span { font-weight: 600; font-size: 13px; }
+  label.field > .hint { font-weight: 400; font-size: 11px; color: #888; }
+  input[type="text"], input[type="email"], input[type="tel"], input[type="password"], input[type="number"] {
+    padding: 8px 10px; font: inherit; border: 1px solid #ccc; border-radius: 6px; width: 100%;
+  }
+  input:focus { outline: none; border-color: #4a86e8; box-shadow: 0 0 0 2px #d6e4ff; }
+  .bool { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+  .bool input { width: 18px; height: 18px; }
+  .bool span { font-size: 13px; }
+  details { margin-top: 18px; }
+  summary { cursor: pointer; color: #555; font-size: 13px; padding: 8px 0; }
+  summary:hover { color: #000; }
+  textarea { width: 100%; height: 220px; font: 11px ui-monospace, monospace; border: 1px solid #ddd; border-radius: 6px; padding: 8px; margin-top: 8px; }
+  .bar { position: sticky; bottom: 0; background: linear-gradient(to top, #fff 70%, transparent); padding: 16px 0 4px; display: flex; gap: 10px; align-items: center; }
+  button.save { background: #0a7; color: #fff; border: none; padding: 10px 22px; border-radius: 8px; font: inherit; font-weight: 600; cursor: pointer; }
+  button.save:hover { background: #086; }
+  button.save:disabled { background: #9ad; cursor: default; }
+  #msg { font-size: 13px; min-height: 1em; flex: 1; }
+  #msg.ok { color: #070; }
+  #msg.err { color: #c00; }
 </style></head>
 <body>
-  <h2>Profile</h2>
-  <p style="font-size:12px;color:#666">Edit as JSON. See schema in <code>src/profile.js</code>.</p>
-  <textarea id="profile"></textarea>
-  <label>OpenAI API key</label>
-  <input id="apikey" type="password">
-  <label>Model</label>
-  <input id="model" type="text" placeholder="gpt-4o-mini">
-  <button id="save">Save</button>
-  <div id="msg"></div>
+  <h1>Your profile</h1>
+  <p class="sub">This is what Job Auto-Filler uses to pre-fill job applications. Fill in what you're comfortable sharing — leave the rest blank.</p>
+
+  <section>
+    <h2>About you</h2>
+    <div class="grid">
+      <label class="field">First name<input id="firstName" type="text" autocomplete="given-name"></label>
+      <label class="field">Last name<input id="lastName" type="text" autocomplete="family-name"></label>
+      <label class="field">Email<input id="email" type="email" autocomplete="email"></label>
+      <label class="field">Phone<input id="phone" type="tel" autocomplete="tel"></label>
+      <label class="field">LinkedIn URL<span class="hint">e.g. linkedin.com/in/yourname</span><input id="linkedin" type="text"></label>
+      <label class="field">GitHub / Portfolio<span class="hint">github.com/you or your site</span><input id="github" type="text"></label>
+      <label class="field full">Website<span class="hint">personal site, if different from above</span><input id="website" type="text"></label>
+      <label class="field full">Location<span class="hint">City, State, Country</span><input id="location" type="text"></label>
+    </div>
+  </section>
+
+  <section>
+    <h2>Work preferences</h2>
+    <div class="grid">
+      <label class="field full">Expected salary<span class="hint">Annual figure, e.g. $90,000</span><input id="expectedSalary" type="text" placeholder="$90,000"></label>
+    </div>
+    <div class="bool"><input type="checkbox" id="authorizedToWorkUS"><span>I'm authorized to work in the US</span></div>
+    <div class="bool"><input type="checkbox" id="requiresSponsorship"><span>I will need visa sponsorship now or in the future</span></div>
+    <div class="bool"><input type="checkbox" id="remote"><span>I'm open to remote roles</span></div>
+    <div class="bool"><input type="checkbox" id="relocation"><span>I'm willing to relocate</span></div>
+  </section>
+
+  <section>
+    <h2>AI assistant <span style="text-transform:none;font-weight:400;color:#888">— optional</span></h2>
+    <p style="font-size:12px;color:#666;margin:0 0 12px">Used only for fields the rules can't figure out (e.g. "why this role?"). Your profile never leaves the page.</p>
+    <div class="grid">
+      <label class="field full">OpenAI API key<input id="apikey" type="password" placeholder="sk-…"></label>
+      <label class="field full">Model<span class="hint">Default: gpt-4o-mini</span><input id="model" type="text" placeholder="gpt-4o-mini"></label>
+    </div>
+  </section>
+
+  <details>
+    <summary>Advanced — edit raw profile JSON</summary>
+    <p style="font-size:11px;color:#888;margin:4px 0 0">For power users. Work history, education, skills, and saved screener answers live here. Editing this overrides the form fields above on save.</p>
+    <textarea id="raw" spellcheck="false"></textarea>
+  </details>
+
+  <div class="bar">
+    <div id="msg"></div>
+    <button class="save" id="save">Save</button>
+  </div>
+
   <script src="../src/profile.js"></script>
   <script src="../src/storage.js"></script>
   <script src="options.js"></script>
